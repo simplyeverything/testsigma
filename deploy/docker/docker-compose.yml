@@ -2,8 +2,8 @@ version: "3.9"
 
 services:
   mysql:
-    image: mysql:5.7 # Replace with mysql:8.0.32 for m1
-    platform: linux/x86_64 # Replace with linux/arm64/v8 for m1
+    image: mysql:5.7
+    platform: linux/x86_64
     container_name: testsigma_mysql
     restart: always
     volumes:
@@ -13,21 +13,33 @@ services:
       MYSQL_DATABASE: testsigma_opensource
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
-    ports:
-      - "3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    expose:
+      - "3306"
     healthcheck:
       test: out=$$(mysqladmin ping -h localhost -P 3306 -u root --password=root 2>&1); echo $$out | grep 'mysqld is alive' || { echo $$out; exit 1; }
       interval: 1s
       retries: 120
 
   testsigma_server:
-    image: testsigmahq/server:v3.0.1 # Replace with testsigmahq/server:v3.0.1-m1 for m1
+    image: testsigmahq/server:v3.0.1
     container_name: testsigma_server
-    ports:
-      - "9090:9090"
+    restart: always
     volumes:
       - ./ts_data:/opt/app/ts_data
     depends_on:
       mysql:
         condition: service_healthy
+    expose:
+      - "9090"
+
+  ts_proxy:
+    image: nginx:1.20-alpine
+    container_name: testsigma_proxy
+    restart: always
+    depends_on:
+      - testsigma_server
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
