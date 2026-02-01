@@ -12,19 +12,21 @@ services:
       MYSQL_DATABASE: testsigma_opensource
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
-    ports:
+    # Don't publish DB to the host; only expose internally
+    expose:
       - "3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       test: out=$$(mysqladmin ping -h localhost -P 3306 -u root --password=root 2>&1); echo $$out | grep 'mysqld is alive' || { echo $$out; exit 1; }
       interval: 1s
       retries: 120
+
   testsigma_server:
     image: testsigmahq/server:v3.0.1 # Replace with testsigmahq/server:v3.0.1-m1 for m1
     container_name: testsigma_server
-    ports:
-      - "9090:9090"
-      - "443:443"
+    # Don't bind 443 or 9090 on the host; Coolify proxy will route to 9090
+    expose:
+      - "9090"
     volumes:
       - ./ts_data:/opt/app/ts_data
     depends_on:
