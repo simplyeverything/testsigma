@@ -22,10 +22,9 @@ services:
       retries: 120
 
   testsigma_server:
-    # Build a custom image so we don't bind-mount nginx.conf (Coolify mount bug)
     build:
-      context: ./testsigma_custom
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: deploy/docker/testsigma_custom/Dockerfile
     container_name: testsigma_server
     restart: always
     depends_on:
