@@ -22,7 +22,10 @@ services:
       retries: 120
 
   testsigma_server:
-    image: testsigmahq/server:v3.0.1
+    # Build a custom image so we don't bind-mount nginx.conf (Coolify mount bug)
+    build:
+      context: ./testsigma_custom
+      dockerfile: Dockerfile
     container_name: testsigma_server
     restart: always
     depends_on:
@@ -30,7 +33,6 @@ services:
         condition: service_healthy
     volumes:
       - ./ts_data:/opt/app/ts_data
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     expose:
       - "443"
       - "9090"
